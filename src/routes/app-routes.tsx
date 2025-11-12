@@ -10,11 +10,13 @@ import { AssignmentsPage } from '@/features/dashboard/pages/assignments-page'
 import { ResourcesPage } from '@/features/dashboard/pages/resources-page'
 import { ProtectedRoute } from '@/routes/protected-route'
 import { PublicRoute } from '@/routes/public-route'
+import { LandingPage } from '@/pages/landing-page'
 
 export function AppRoutes() {
   return (
     <Routes>
       <Route element={<PublicRoute />}>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
       </Route>
@@ -29,7 +31,6 @@ export function AppRoutes() {
         </Route>
       </Route>
 
-      <Route path="/" element={<Navigate to="/app" replace />} />
       <Route path="*" element={<Navigate to="/app" replace />} />
     </Routes>
   )
