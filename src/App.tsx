@@ -3,6 +3,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { Toaster } from 'sonner'
 
 import { ThemeProvider, useTheme } from '@/components/theme-provider'
+import { LoadingOverlayProvider } from '@/components/loading-overlay-provider'
 import { SessionAutoLogout } from '@/components/session-auto-logout'
 import { AppRoutes } from '@/routes/app-routes'
 
@@ -34,7 +35,9 @@ function App() {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <AppContent />
+        <LoadingOverlayProvider>
+          <AppContent />
+        </LoadingOverlayProvider>
       </QueryClientProvider>
     </ThemeProvider>
   )

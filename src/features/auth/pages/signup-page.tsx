@@ -14,6 +14,7 @@ import { loginWithGoogleToken, signup } from '@/features/auth/api/auth-api'
 import { useAuthStore } from '@/stores/auth-store'
 import { handleApiError, notifyError, notifySuccess } from '@/lib/notifications'
 import { waitForGoogleIdentity, type GoogleCredentialResponse } from '@/lib/google-client'
+import { LottieLoader } from '@/components/ui/lottie-loader'
 
 const signupSchema = z
   .object({
@@ -183,7 +184,15 @@ export function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col justify-center bg-gradient-to-br from-background via-background to-background px-4 py-12">
+    <div className="relative flex min-h-screen flex-col justify-center bg-gradient-to-br from-background via-background to-background px-4 py-12">
+      <LottieLoader
+        isVisible={mutation.isPending || googleMutation.isPending}
+        overlay
+        size="small"
+        message={
+          googleMutation.isPending ? 'Completing Google sign-in…' : 'Creating your account…'
+        }
+      />
       <div className="mx-auto w-full max-w-md">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
@@ -215,11 +224,6 @@ export function SignupPage() {
                   </Button>
                 )}
               </div>
-              {googleMutation.isPending ? (
-                <p className="text-center text-xs text-muted-foreground">
-                  Completing Google sign-in…
-                </p>
-              ) : null}
               <div className="flex items-center gap-3">
                 <span className="h-px flex-1 bg-border" />
                 <span className="text-xs uppercase text-muted-foreground">or</span>

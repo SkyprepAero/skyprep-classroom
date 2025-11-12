@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { faChevronDown, faMagnifyingGlass, faRightFromBracket, faUser } from '@fortawesome/free-solid-svg-icons'
+import {
+  faChevronDown,
+  faMagnifyingGlass,
+  faRightFromBracket,
+  faUser,
+} from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useNavigate } from 'react-router-dom'
 
@@ -7,6 +12,7 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/stores/auth-store'
+import { cn } from '@/lib/utils'
 
 interface TopbarProps {
   onLogout?: () => void
@@ -16,6 +22,8 @@ export function Topbar({ onLogout }: TopbarProps) {
   const user = useAuthStore((state) => state.user)
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isMenuVisible, setIsMenuVisible] = useState(false)
+  const [isClosing, setIsClosing] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
   const buttonRef = useRef<HTMLButtonElement | null>(null)
 
@@ -40,7 +48,22 @@ export function Topbar({ onLogout }: TopbarProps) {
   }, [user])
 
   useEffect(() => {
-    if (!isMenuOpen) return
+    if (isMenuOpen) {
+      setIsMenuVisible(true)
+      return
+    }
+    if (isMenuVisible) {
+      setIsClosing(true)
+      const timeout = window.setTimeout(() => {
+        setIsMenuVisible(false)
+        setIsClosing(false)
+      }, 150)
+      return () => window.clearTimeout(timeout)
+    }
+  }, [isMenuOpen, isMenuVisible])
+
+  useEffect(() => {
+    if (!isMenuVisible) return
 
     const handleClick = (event: MouseEvent) => {
       const target = event.target as Node
@@ -67,7 +90,7 @@ export function Topbar({ onLogout }: TopbarProps) {
       document.removeEventListener('mousedown', handleClick)
       document.removeEventListener('keydown', handleKey)
     }
-  }, [isMenuOpen])
+  }, [isMenuVisible])
 
   const handleLogout = () => {
     onLogout?.()
@@ -96,7 +119,10 @@ export function Topbar({ onLogout }: TopbarProps) {
           <button
             ref={buttonRef}
             type="button"
-            className="flex items-center gap-2 rounded-full border border-border bg-card px-2 py-1 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+            className={cn(
+              'flex items-center gap-2 rounded-full border border-border bg-card px-2 py-1 text-sm font-medium text-foreground shadow-sm',
+              'transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-accent hover:text-accent-foreground',
+            )}
             onClick={() => setIsMenuOpen((prev) => !prev)}
             aria-haspopup="menu"
             aria-expanded={isMenuOpen}
@@ -118,10 +144,14 @@ export function Topbar({ onLogout }: TopbarProps) {
             </span>
             <FontAwesomeIcon icon={faChevronDown} className="h-3 w-3 text-muted-foreground" />
           </button>
-          {isMenuOpen ? (
+          {isMenuVisible ? (
             <div
               ref={menuRef}
-              className="absolute right-0 z-50 mt-2 w-60 rounded-md border border-border bg-card p-2 shadow-lg"
+              className={cn(
+                'absolute right-0 z-50 mt-2 w-60 rounded-md border border-border bg-card p-2 shadow-lg',
+                'origin-top-right duration-150',
+                isClosing ? 'animate-out fade-out zoom-out-95' : 'animate-in fade-in zoom-in-95',
+              )}
               role="menu"
             >
               <div className="flex items-center gap-3 rounded-md p-2">
@@ -144,7 +174,10 @@ export function Topbar({ onLogout }: TopbarProps) {
               <div className="my-1 border-t border-border" />
               <button
                 type="button"
-                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                className={cn(
+                  'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground',
+                  'transition-all duration-150 ease-out hover:bg-accent hover:text-accent-foreground hover:translate-x-0.5',
+                )}
                 onClick={() => {
                   setIsMenuOpen(false)
                   navigate('/app/profile')
@@ -155,7 +188,10 @@ export function Topbar({ onLogout }: TopbarProps) {
               </button>
               <button
                 type="button"
-                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10"
+                className={cn(
+                  'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive',
+                  'transition-all duration-150 ease-out hover:bg-destructive/10 hover:translate-x-0.5',
+                )}
                 onClick={() => {
                   setIsMenuOpen(false)
                   handleLogout()

@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { NavLink } from 'react-router-dom'
 
 import { cn } from '@/lib/utils'
+import logo from '@/assets/logo.png'
 
 const navigation = [
   {
@@ -41,11 +42,18 @@ const navigation = [
 export function Sidebar() {
   return (
     <aside className="hidden w-64 border-r border-border bg-card/40 p-6 md:flex md:flex-col">
-      <div className="mb-8">
-        <div className="text-xl font-semibold text-primary">SkyPrep Classroom</div>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Learning management for your students
-        </p>
+      <div className="mb-8 flex items-center gap-3">
+        <img
+          src={logo}
+          alt="SkyPrep Classroom"
+          className="h-10 w-10 rounded-md border border-border bg-card object-cover shadow-sm"
+        />
+        <div>
+          <div className="text-lg font-semibold text-primary">SkyPrep Classroom</div>
+          <p className="text-xs text-muted-foreground">
+            Learning management for your students
+          </p>
+        </div>
       </div>
       <nav className="flex-1 space-y-1">
         {navigation.map((item) => (
@@ -55,15 +63,21 @@ export function Sidebar() {
             end={item.to === '/app'}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground',
+                'group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all duration-150 ease-out hover:bg-accent hover:text-accent-foreground hover:-translate-x-0.5',
                 isActive
-                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
                   : 'text-muted-foreground',
               )
             }
           >
-            <FontAwesomeIcon icon={item.icon} className="h-4 w-4" />
-            <span>{item.label}</span>
+            <FontAwesomeIcon
+              icon={item.icon}
+              className={cn(
+                'h-4 w-4 transition-transform duration-150 ease-out group-hover:scale-110 group-hover:text-current',
+                'group-active:scale-95',
+              )}
+            />
+            <span className="transition-colors duration-150">{item.label}</span>
           </NavLink>
         ))}
       </nav>

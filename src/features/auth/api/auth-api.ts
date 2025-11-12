@@ -29,7 +29,9 @@ export interface GoogleTokenRequest {
 
 export async function login(request: LoginRequest): Promise<AuthSuccessResponse> {
   try {
-    const { data } = await apiClient.post<AuthSuccessResponse>('/auth/login', request)
+    const { data } = await apiClient.post<AuthSuccessResponse>('/auth/login', request, {
+      showLoadingOverlay: true,
+    })
     return data
   } catch (error) {
     throw toApiClientError(error)
@@ -38,7 +40,9 @@ export async function login(request: LoginRequest): Promise<AuthSuccessResponse>
 
 export async function signup(request: SignupRequest): Promise<AuthSuccessResponse> {
   try {
-    const { data } = await apiClient.post<AuthSuccessResponse>('/auth/register', request)
+    const { data } = await apiClient.post<AuthSuccessResponse>('/auth/register', request, {
+      showLoadingOverlay: true,
+    })
     return data
   } catch (error) {
     throw toApiClientError(error)
@@ -49,7 +53,9 @@ export async function loginWithGoogleToken(
   request: GoogleTokenRequest,
 ): Promise<AuthSuccessResponse> {
   try {
-    const { data } = await apiClient.post<AuthSuccessResponse>('/auth/google', request)
+    const { data } = await apiClient.post<AuthSuccessResponse>('/auth/google', request, {
+      showLoadingOverlay: true,
+    })
     return data
   } catch (error) {
     throw toApiClientError(error)
