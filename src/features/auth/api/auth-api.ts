@@ -17,10 +17,20 @@ export interface SignupRequest {
   primaryRole: string
 }
 
+export interface AuthVerificationMetadata {
+  purpose?: string
+  email?: string
+  expiresAt?: string
+  resendAvailableAt?: string
+  verifiedAt?: string
+}
+
 export interface AuthPayload {
-  token: string
+  token: string | null
   user: AuthUser
-  tokenExpiresAt: string
+  tokenExpiresAt: string | null
+  requiresPasscode?: boolean
+  verification?: AuthVerificationMetadata
 }
 
 export type AuthSuccessResponse = ApiSuccessResponse<AuthPayload>
@@ -56,6 +66,24 @@ export async function loginWithGoogleToken(
 ): Promise<AuthSuccessResponse> {
   try {
     const { data } = await apiClient.post<AuthSuccessResponse>('/auth/google', request, {
+      showLoadingOverlay: true,
+    })
+    return data
+  } catch (error) {
+    throw toApiClientError(error)
+  }
+}
+
+export interface VerifyLoginPasscodeRequest {
+  email: string
+  passcode: string
+}
+
+export async function verifyLoginPasscode(
+  request: VerifyLoginPasscodeRequest,
+): Promise<AuthSuccessResponse> {
+  try {
+    const { data } = await apiClient.post<AuthSuccessResponse>('/auth/login/passcode', request, {
       showLoadingOverlay: true,
     })
     return data

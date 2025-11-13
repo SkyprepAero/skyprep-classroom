@@ -13,7 +13,11 @@ interface AuthState {
   token: string | null
   tokenExpiresAt: number | null
   isAuthenticated: boolean
-  login: (payload: { user: AuthUser; token: string; tokenExpiresAt?: string | number | null }) => void
+  login: (payload: {
+    user: AuthUser
+    token: string | null
+    tokenExpiresAt?: string | number | null
+  }) => void
   logout: () => void
 }
 
@@ -35,9 +39,9 @@ export const useAuthStore = create<AuthState>()(
             : null
         set({
           user,
-          token,
+          token: token ?? null,
           tokenExpiresAt: typeof expiresMs === 'number' ? expiresMs : null,
-          isAuthenticated: true,
+          isAuthenticated: Boolean(token),
         })
       },
       logout: () =>

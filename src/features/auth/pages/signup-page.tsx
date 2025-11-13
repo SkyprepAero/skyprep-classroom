@@ -287,8 +287,8 @@ export function SignupPage() {
             <p>
               Tip: Bookmark your dashboard or install it as a PWA for quick access before each session.
               Need clearance from support? Reach the operations crew at{' '}
-              <a href="mailto:support@skyprep.edu" className="font-medium text-sky-200 underline">
-                support@skyprep.edu
+              <a href="mailto:support@skyprepaero.com" className="font-medium text-sky-200 underline">
+                support@skyprepaero.com
               </a>
               .
             </p>

@@ -8,8 +8,10 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { NavLink } from 'react-router-dom'
 
+import { useTheme } from '@/components/theme-provider'
 import { cn } from '@/lib/utils'
-import logo from '@/assets/logo.png'
+import lightLogo from '@/assets/logo.png'
+import darkLogo from '@/assets/skyprep-logo-dark.png'
 
 const navigation = [
   {
@@ -40,19 +42,22 @@ const navigation = [
 ]
 
 export function Sidebar() {
+  const { theme } = useTheme()
+  const logoSrc = theme === 'dark' ? darkLogo : lightLogo
+
   return (
     <>
     <aside className="hidden w-64 border-r border-border bg-card/40 p-6 md:flex md:flex-col">
       <div className="mb-8 flex items-center gap-3">
         <img
-          src={logo}
+          src={logoSrc}
           alt="SkyPrep Classroom"
           className="h-10 w-10 rounded-md border border-border bg-card object-cover shadow-sm"
         />
         <div>
           <div className="text-lg font-semibold text-primary">SkyPrep Classroom</div>
           <p className="text-xs text-muted-foreground">
-            Shaping 
+            Shaping aviators with precision
           </p>
         </div>
       </div>

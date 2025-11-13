@@ -1,6 +1,7 @@
 import axios from 'axios'
 
 import { API_TIMEOUT, API_URL, API_VERSION } from '@/config/api'
+import { notifyError } from '@/lib/notifications'
 import { authStore } from '@/stores/auth-store'
 
 declare module 'axios' {
@@ -49,6 +50,12 @@ axiosInstance.interceptors.request.use((config) => {
   return config
 })
 
+const SESSION_REVOKED_CODE = 'AUTH_1011'
+const SESSION_REVOKED_FALLBACK_MESSAGE =
+  'You’ve been logged out because your account was accessed elsewhere.'
+let lastSessionRevocationNoticeAt = 0
+const SESSION_NOTICE_COOLDOWN_MS = 2000
+
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -59,7 +66,26 @@ axiosInstance.interceptors.response.use(
 
     const status = error.response?.status
 
+    const errorPayload =
+      typeof error.response?.data === 'object' && error.response?.data !== null
+        ? (error.response.data as {
+            error?: { code?: unknown; message?: unknown; [key: string]: unknown }
+          })
+        : undefined
+
+    const errorCode =
+      typeof errorPayload?.error?.code === 'string' ? errorPayload.error.code : undefined
+    const errorMessage =
+      typeof errorPayload?.error?.message === 'string' ? errorPayload.error.message : undefined
+
     if (status === 401 && !error.config?.skipAuthRefresh) {
+      if (errorCode === SESSION_REVOKED_CODE) {
+        const now = Date.now()
+        if (now - lastSessionRevocationNoticeAt > SESSION_NOTICE_COOLDOWN_MS) {
+          notifyError(errorMessage, SESSION_REVOKED_FALLBACK_MESSAGE)
+          lastSessionRevocationNoticeAt = now
+        }
+      }
       authStore.clear()
     }
 

@@ -5,11 +5,15 @@ import type { ApiErrorDetail, ApiErrorResponse } from '@/types/api'
 export interface ApiClientErrorOptions {
   status?: number
   errors?: ApiErrorDetail[]
+  code?: string
+  details?: Record<string, unknown>
 }
 
 export class ApiClientError extends Error {
   status?: number
   errors?: ApiErrorDetail[]
+  code?: string
+  details?: Record<string, unknown>
 
   constructor(message: string, options: ApiClientErrorOptions = {}) {
     super(message)
@@ -19,6 +23,12 @@ export class ApiClientError extends Error {
     }
     if (options.errors) {
       this.errors = options.errors
+    }
+    if (options.code) {
+      this.code = options.code
+    }
+    if (options.details) {
+      this.details = options.details
     }
   }
 }
@@ -62,6 +72,12 @@ export function toApiClientError(error: unknown): ApiClientError {
       }
       if (detailErrors.length) {
         options.errors = detailErrors
+      }
+      if (payload.error?.code && typeof payload.error.code === 'string') {
+        options.code = payload.error.code
+      }
+      if (payload.error?.details && typeof payload.error.details === 'object') {
+        options.details = payload.error.details as Record<string, unknown>
       }
 
       return new ApiClientError(message, options)

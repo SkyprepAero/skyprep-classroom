@@ -2,7 +2,9 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores/auth-store'
-import logo from '@/assets/logo.png'
+import { useTheme } from '@/components/theme-provider'
+import lightLogo from '@/assets/logo.png'
+import darkLogo from '@/assets/skyprep-logo-dark.png'
 
 const features = [
   {
@@ -26,6 +28,8 @@ const features = [
 export function LandingPage() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const navigate = useNavigate()
+  const { theme } = useTheme()
+  const logoSrc = theme === 'dark' ? darkLogo : lightLogo
 
   const handlePrimaryCta = () => {
     if (isAuthenticated) {
@@ -44,7 +48,7 @@ export function LandingPage() {
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
         <div className="flex items-center gap-3">
           <img
-            src={logo}
+            src={logoSrc}
             alt="SkyPrep Classroom"
             className="h-10 w-10 rounded-md border border-border bg-card object-cover shadow-sm"
           />
