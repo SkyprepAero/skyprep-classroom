@@ -11,12 +11,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { LottieLoader } from '@/components/ui/lottie-loader'
+import { OtpInput } from '@/components/ui/otp-input'
 import {
   login,
   loginWithGoogleToken,
   verifyLoginPasscode,
   type AuthVerificationMetadata,
 } from '@/features/auth/api/auth-api'
+import { SESSION_REVOKED_MESSAGE_STORAGE_KEY } from '@/lib/auth/logout-reasons'
 import { useAuthStore } from '@/stores/auth-store'
 import { handleApiError, notifyError, notifySuccess } from '@/lib/notifications'
 import { waitForGoogleIdentity, type GoogleCredentialResponse } from '@/lib/google-client'
@@ -74,6 +76,26 @@ export function LoginPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim()
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    try {
+      const storedMessage = window.sessionStorage.getItem(SESSION_REVOKED_MESSAGE_STORAGE_KEY)
+      if (storedMessage) {
+        setErrors((prev) => ({
+          ...prev,
+          root: storedMessage,
+        }))
+        window.sessionStorage.removeItem(SESSION_REVOKED_MESSAGE_STORAGE_KEY)
+        setPasscodeError(null)
+      }
+    } catch (storageError) {
+      console.warn('Unable to read session revocation message', storageError)
+    }
+  }, [])
 
   const completeLogin = useCallback(
     (payload: Parameters<typeof loginUser>[0], message: string) => {
@@ -272,8 +294,8 @@ export function LoginPage() {
     })
   }
 
-  const handlePasscodeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const digitsOnly = event.target.value.replace(/\D/g, '').slice(0, passcodeMaxLength)
+  const handlePasscodeChange = (nextValue: string) => {
+    const digitsOnly = nextValue.replace(/\D/g, '').slice(0, passcodeMaxLength)
     setPasscode(digitsOnly)
     if (passcodeError) {
       setPasscodeError(null)
@@ -422,18 +444,16 @@ export function LoginPage() {
               <div className="space-y-6">
                 <form className="space-y-4" onSubmit={handlePasscodeSubmit} noValidate>
                   <div className="space-y-2 text-left">
-                    <Label htmlFor="passcode">Verification code</Label>
-                    <Input
-                      id="passcode"
-                      name="passcode"
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
+                    <Label htmlFor="passcode-0">Verification code</Label>
+                    <OtpInput
+                      idPrefix="passcode"
+                      length={passcodeMaxLength}
                       value={passcode}
                       onChange={handlePasscodeChange}
-                      placeholder={`Enter ${passcodeMaxLength}-digit code`}
-                      maxLength={passcodeMaxLength}
+                      autoFocus
                       disabled={verifyMutation.isPending}
+                      isError={Boolean(passcodeError)}
+                      className="mt-2 justify-center"
                     />
                     {passcodeError ? (
                       <p className="text-xs text-destructive">{passcodeError}</p>
@@ -497,7 +517,7 @@ export function LoginPage() {
                     <span className="h-px flex-1 bg-border" />
                     <span className="text-xs uppercase text-muted-foreground">or</span>
                     <span className="h-px flex-1 bg-border" />
-                  </div>
+                </div>
                 </div>
                 <form className="space-y-4" onSubmit={handleSubmit} noValidate>
                   <div className="space-y-2 text-left">
@@ -545,6 +565,11 @@ export function LoginPage() {
                       <p className="text-xs text-destructive">{errors.password}</p>
                     ) : null}
                   </div>
+              <div className="text-right text-xs">
+                <Link to="/forgot-password" className="text-primary hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
                   <Button className="w-full" type="submit" disabled={mutation.isPending}>
                     {mutation.isPending ? 'Signing in…' : 'Sign in'}
                   </Button>

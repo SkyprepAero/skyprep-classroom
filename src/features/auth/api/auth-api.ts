@@ -8,6 +8,20 @@ export interface LoginRequest {
   password: string
 }
 
+export interface ForgotPasswordRequest {
+  email: string
+}
+
+export interface VerifyPasswordResetRequest {
+  email: string
+  passcode: string
+}
+
+export interface ResetPasswordRequest {
+  resetToken: string
+  newPassword: string
+}
+
 export interface SignupRequest {
   name: string
   email: string
@@ -34,6 +48,21 @@ export interface AuthPayload {
 }
 
 export type AuthSuccessResponse = ApiSuccessResponse<AuthPayload>
+
+export interface ForgotPasswordRequestPayload {
+  requiresPasscode: boolean
+  verification?: AuthVerificationMetadata | null
+}
+
+export type ForgotPasswordRequestResponse = ApiSuccessResponse<ForgotPasswordRequestPayload>
+
+export interface VerifyPasswordResetPayload {
+  email: string
+  resetToken: string
+  resetTokenExpiresAt: string
+}
+
+export type VerifyPasswordResetResponse = ApiSuccessResponse<VerifyPasswordResetPayload>
 
 export interface GoogleTokenRequest {
   idToken: string
@@ -86,6 +115,57 @@ export async function verifyLoginPasscode(
     const { data } = await apiClient.post<AuthSuccessResponse>('/auth/login/passcode', request, {
       showLoadingOverlay: true,
     })
+    return data
+  } catch (error) {
+    throw toApiClientError(error)
+  }
+}
+
+export async function requestPasswordReset(
+  request: ForgotPasswordRequest,
+): Promise<ForgotPasswordRequestResponse> {
+  try {
+    const { data } = await apiClient.post<ForgotPasswordRequestResponse>(
+      '/auth/forgot-password',
+      request,
+      {
+        showLoadingOverlay: true,
+      },
+    )
+    return data
+  } catch (error) {
+    throw toApiClientError(error)
+  }
+}
+
+export async function verifyPasswordReset(
+  request: VerifyPasswordResetRequest,
+): Promise<VerifyPasswordResetResponse> {
+  try {
+    const { data } = await apiClient.post<VerifyPasswordResetResponse>(
+      '/auth/forgot-password/verify',
+      request,
+      {
+        showLoadingOverlay: true,
+      },
+    )
+    return data
+  } catch (error) {
+    throw toApiClientError(error)
+  }
+}
+
+export async function resetPassword(
+  request: ResetPasswordRequest,
+): Promise<AuthSuccessResponse> {
+  try {
+    const { data } = await apiClient.post<AuthSuccessResponse>(
+      '/auth/forgot-password/reset',
+      request,
+      {
+        showLoadingOverlay: true,
+      },
+    )
     return data
   } catch (error) {
     throw toApiClientError(error)

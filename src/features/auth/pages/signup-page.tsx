@@ -438,6 +438,17 @@ export function SignupPage() {
                   <Button className="w-full md:col-span-2" type="submit" disabled={mutation.isPending}>
                     {mutation.isPending ? 'Creating account…' : 'Create account'}
                   </Button>
+                  <p className="md:col-span-2 text-xs text-muted-foreground text-center">
+                    By registering, you agree to our{' '}
+                    <Link to="/terms" className="text-primary hover:underline">
+                      Terms &amp; Conditions
+                    </Link>{' '}
+                    and{' '}
+                    <Link to="/privacy" className="text-primary hover:underline">
+                      Privacy Policy
+                    </Link>
+                    .
+                  </p>
                 </form>
               </CardContent>
             </Card>

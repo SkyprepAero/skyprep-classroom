@@ -1,6 +1,7 @@
 import axios from 'axios'
 
 import { API_TIMEOUT, API_URL, API_VERSION } from '@/config/api'
+import { SESSION_REVOKED_MESSAGE_STORAGE_KEY } from '@/lib/auth/logout-reasons'
 import { notifyError } from '@/lib/notifications'
 import { authStore } from '@/stores/auth-store'
 
@@ -81,9 +82,24 @@ axiosInstance.interceptors.response.use(
     if (status === 401 && !error.config?.skipAuthRefresh) {
       if (errorCode === SESSION_REVOKED_CODE) {
         const now = Date.now()
+        const messageToPersist = errorMessage || SESSION_REVOKED_FALLBACK_MESSAGE
+        if (typeof window !== 'undefined') {
+          try {
+            window.sessionStorage.setItem(SESSION_REVOKED_MESSAGE_STORAGE_KEY, messageToPersist)
+          } catch (storageError) {
+            console.warn('Unable to store session revocation message', storageError)
+          }
+        }
+
         if (now - lastSessionRevocationNoticeAt > SESSION_NOTICE_COOLDOWN_MS) {
           notifyError(errorMessage, SESSION_REVOKED_FALLBACK_MESSAGE)
           lastSessionRevocationNoticeAt = now
+        }
+
+        if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+          window.setTimeout(() => {
+            window.location.assign('/login')
+          }, 0)
         }
       }
       authStore.clear()

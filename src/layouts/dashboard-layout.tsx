@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 
-import { Sidebar } from '@/components/layout/sidebar'
+import { Sidebar, SIDEBAR_STORAGE_KEY } from '@/components/layout/sidebar'
 import { Topbar } from '@/components/layout/topbar'
 import { LottieLoader } from '@/components/ui/lottie-loader'
 import { useAuthStore } from '@/stores/auth-store'
@@ -10,6 +10,10 @@ export function DashboardLayout() {
   const logout = useAuthStore((state) => state.logout)
   const location = useLocation()
   const [isTransitioning, setIsTransitioning] = useState(true)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    return window.localStorage.getItem(SIDEBAR_STORAGE_KEY) === 'true'
+  })
 
   useEffect(() => {
     setIsTransitioning(true)
@@ -22,6 +26,11 @@ export function DashboardLayout() {
     }
   }, [location.pathname])
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(isSidebarCollapsed))
+  }, [isSidebarCollapsed])
+
   return (
     <div className="flex min-h-screen bg-background">
       <LottieLoader
@@ -31,9 +40,13 @@ export function DashboardLayout() {
         message="Loading your classroom..."
         className="text-primary"
       />
-      <Sidebar />
+      <Sidebar isCollapsed={isSidebarCollapsed} />
       <div className="flex flex-1 flex-col">
-        <Topbar onLogout={logout} />
+        <Topbar
+          onLogout={logout}
+          onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
+          isSidebarCollapsed={isSidebarCollapsed}
+        />
         <main className="flex-1 bg-muted/20 p-4 md:p-6">
           <div className="mx-auto h-full max-w-6xl">
             <div

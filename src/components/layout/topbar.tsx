@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
+  faBarsStaggered,
   faChevronDown,
   faMagnifyingGlass,
   faRightFromBracket,
@@ -16,9 +17,11 @@ import { cn } from '@/lib/utils'
 
 interface TopbarProps {
   onLogout?: () => void
+  onToggleSidebar?: () => void
+  isSidebarCollapsed?: boolean
 }
 
-export function Topbar({ onLogout }: TopbarProps) {
+export function Topbar({ onLogout, onToggleSidebar, isSidebarCollapsed }: TopbarProps) {
   const user = useAuthStore((state) => state.user)
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -100,6 +103,19 @@ export function Topbar({ onLogout }: TopbarProps) {
   return (
     <header className="flex items-center justify-between gap-4 border-b border-border bg-background/60 px-4 py-3 backdrop-blur-md md:px-6">
       <div className="flex flex-1 items-center gap-3">
+        {onToggleSidebar ? (
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="h-10 w-10 rounded-full border border-border/70 bg-background/80 text-muted-foreground transition-all hover:border-primary/40 hover:text-primary"
+            aria-label={isSidebarCollapsed ? 'Expand menu' : 'Collapse menu'}
+            aria-expanded={!isSidebarCollapsed}
+            onClick={onToggleSidebar}
+          >
+            <FontAwesomeIcon icon={faBarsStaggered} className="h-4 w-4" />
+          </Button>
+        ) : null}
         <div className="relative hidden sm:flex sm:flex-1">
           <FontAwesomeIcon
             icon={faMagnifyingGlass}

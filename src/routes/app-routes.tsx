@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { LoginPage } from '@/features/auth/pages/login-page'
 import { SignupPage } from '@/features/auth/pages/signup-page'
+import { ForgotPasswordPage } from '@/features/auth/pages/forgot-password-page'
 import { DashboardLayout } from '@/layouts/dashboard-layout'
 import { DashboardHomePage } from '@/features/dashboard/pages/dashboard-home-page'
 import { TestSeriesPage } from '@/features/dashboard/pages/test-series-page'
@@ -19,6 +20,7 @@ export function AppRoutes() {
       <Route element={<PublicRoute />}>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/signup" element={<SignupPage />} />
       </Route>
 
