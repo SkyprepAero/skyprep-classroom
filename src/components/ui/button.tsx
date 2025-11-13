@@ -31,12 +31,42 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {}
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+type SlotProps = React.HTMLAttributes<HTMLElement> & {
+  children?: React.ReactNode
+}
+
+const Slot = React.forwardRef<HTMLElement, SlotProps>(
+  ({ children, className, ...props }, ref) => {
+    if (React.isValidElement(children)) {
+      return React.cloneElement(children, {
+        ...props,
+        className: cn(className, (children.props as { className?: string }).className),
+        ref,
+      })
+    }
+
+    return (
+      <span
+        className={className}
+        ref={ref as React.Ref<HTMLSpanElement>}
+        {...props}
+      >
+        {children}
+      </span>
+    )
+  },
+)
+Slot.displayName = 'Slot'
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : 'button'
     return (
-      <button
+      <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...props}

@@ -7,15 +7,15 @@ import { cn } from '@/lib/utils'
 type LottieSize = 'small' | 'medium' | 'large'
 
 const sizeClasses: Record<LottieSize, string> = {
-  small: 'h-64 w-64',
-  medium: 'h-128 w-128',
-  large: 'h-200 w-200',
+  small: 'h-[256px] w-[256px]',
+  medium: 'h-[384px] w-[384px]',
+  large: 'h-[512px] w-[512px]',
 }
 
 const sizeStyles: Record<LottieSize, { width: number; height: number }> = {
-  small: { width: 128, height: 128 },
-  medium: { width: 192, height: 192 },
-  large: { width: 256, height: 256 },
+  small: { width: 256, height: 256 },
+  medium: { width: 384, height: 384 },
+  large: { width: 512, height: 512 },
 }
 
 export interface LottieLoaderProps extends ComponentProps<'div'> {

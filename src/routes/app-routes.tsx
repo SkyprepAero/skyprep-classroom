@@ -8,6 +8,7 @@ import { TestSeriesPage } from '@/features/dashboard/pages/test-series-page'
 import { LiveSessionsPage } from '@/features/dashboard/pages/live-sessions-page'
 import { AssignmentsPage } from '@/features/dashboard/pages/assignments-page'
 import { ResourcesPage } from '@/features/dashboard/pages/resources-page'
+import { ProfilePage } from '@/features/dashboard/pages/profile-page'
 import { ProtectedRoute } from '@/routes/protected-route'
 import { PublicRoute } from '@/routes/public-route'
 import { LandingPage } from '@/pages/landing-page'
@@ -28,6 +29,7 @@ export function AppRoutes() {
           <Route path="live-sessions" element={<LiveSessionsPage />} />
           <Route path="assignments" element={<AssignmentsPage />} />
           <Route path="resources" element={<ResourcesPage />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
       </Route>
 

@@ -41,6 +41,7 @@ const navigation = [
 
 export function Sidebar() {
   return (
+    <>
     <aside className="hidden w-64 border-r border-border bg-card/40 p-6 md:flex md:flex-col">
       <div className="mb-8 flex items-center gap-3">
         <img
@@ -51,7 +52,7 @@ export function Sidebar() {
         <div>
           <div className="text-lg font-semibold text-primary">SkyPrep Classroom</div>
           <p className="text-xs text-muted-foreground">
-            Learning management for your students
+            Shaping 
           </p>
         </div>
       </div>
@@ -88,6 +89,7 @@ export function Sidebar() {
         </p>
       </div>
     </aside>
+    </>
   )
 }
 
