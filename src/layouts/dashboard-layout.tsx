@@ -32,7 +32,7 @@ export function DashboardLayout() {
   }, [isSidebarCollapsed])
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen overflow-hidden bg-background">
       <LottieLoader
         isVisible={isTransitioning}
         overlay
@@ -41,17 +41,17 @@ export function DashboardLayout() {
         className="text-primary"
       />
       <Sidebar isCollapsed={isSidebarCollapsed} />
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar
           onLogout={logout}
           onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
           isSidebarCollapsed={isSidebarCollapsed}
         />
-        <main className="flex-1 bg-muted/20 p-4 md:p-6">
-          <div className="mx-auto h-full max-w-6xl">
+        <main className="flex-1 overflow-y-auto bg-muted/20 p-4 md:p-6">
+          <div className="mx-auto max-w-6xl">
             <div
               key={location.pathname}
-              className="h-full animate-in fade-in slide-in-from-bottom-2 duration-300"
+              className="animate-in fade-in slide-in-from-bottom-2 duration-300"
             >
               <Outlet />
             </div>

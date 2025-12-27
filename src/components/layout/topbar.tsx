@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   faBarsStaggered,
   faChevronDown,
-  faMagnifyingGlass,
   faRightFromBracket,
   faUser,
 } from '@fortawesome/free-solid-svg-icons'
@@ -101,7 +100,7 @@ export function Topbar({ onLogout, onToggleSidebar, isSidebarCollapsed }: Topbar
   }
 
   return (
-    <header className="flex items-center justify-between gap-4 border-b border-border bg-background/60 px-4 py-3 backdrop-blur-md md:px-6">
+    <header className="flex items-center justify-between gap-4 border-b border-border bg-background/60 px-4 py-3 backdrop-blur-md md:px-6 flex-shrink-0">
       <div className="flex flex-1 items-center gap-3">
         {onToggleSidebar ? (
           <Button
@@ -117,16 +116,8 @@ export function Topbar({ onLogout, onToggleSidebar, isSidebarCollapsed }: Topbar
           </Button>
         ) : null}
         <div className="relative hidden sm:flex sm:flex-1">
-          <FontAwesomeIcon
-            icon={faMagnifyingGlass}
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
-            type="search"
-            placeholder="Search classes, tests or sessions"
-            className="pl-9"
-            aria-label="Search classroom"
-          />
+        
+          
         </div>
       </div>
       <div className="flex items-center gap-2">

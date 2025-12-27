@@ -6,6 +6,17 @@ export interface AuthUser {
   name: string
   email: string
   avatarUrl?: string
+  enrollmentType?: 'focusOne' | 'cohort' | null
+  primaryRole?: {
+    id: string
+    name: string
+    displayName?: string
+  } | null
+  roles?: Array<{
+    id: string
+    name: string
+    displayName?: string
+  }>
 }
 
 interface AuthState {

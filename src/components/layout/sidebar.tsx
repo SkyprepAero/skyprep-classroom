@@ -1,11 +1,15 @@
 import { useMemo } from 'react'
 import {
   faBookOpen,
+  faCalendar,
+  faCalendarCheck,
   faClock,
   faHouse,
   faLayerGroup,
   faRightFromBracket,
   faVideo,
+  faUserGraduate,
+  faUsers,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { NavLink } from 'react-router-dom'
@@ -20,34 +24,6 @@ import { notifySuccess } from '@/lib/notifications'
 
 export const SIDEBAR_STORAGE_KEY = 'skyprep-sidebar-collapsed'
 
-const navigation = [
-  {
-    label: 'Overview',
-    icon: faHouse,
-    to: '/app',
-  },
-  {
-    label: 'Test Series',
-    icon: faLayerGroup,
-    to: '/app/test-series',
-  },
-  {
-    label: 'Live Sessions',
-    icon: faVideo,
-    to: '/app/live-sessions',
-  },
-  { 
-    label: 'Assignments',
-    icon: faClock,
-    to: '/app/assignments',
-  },
-  {
-    label: 'Resources',
-    icon: faBookOpen,
-    to: '/app/resources',
-  },
-]
-
 interface SidebarProps {
   isCollapsed: boolean
 }
@@ -56,11 +32,119 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
   const { theme } = useTheme()
   const logoSrc = theme === 'dark' ? darkLogo : lightLogo
   const logout = useAuthStore((state) => state.logout)
+  const user = useAuthStore((state) => state.user)
+  const enrollmentType = user?.enrollmentType || null
+  // Check if user is a teacher by primaryRole name or by roles array
+  const isTeacher = useMemo(() => {
+    if (!user) return false
+    // Handle primaryRole as object (new format) or string (old format)
+    const primaryRoleName = typeof user.primaryRole === 'string' 
+      ? user.primaryRole 
+      : user.primaryRole?.name
+    if (primaryRoleName?.toLowerCase() === 'teacher') return true
+    // Check roles array (case-insensitive)
+    if (user.roles?.some(role => {
+      const roleName = typeof role === 'string' ? role : role.name
+      return roleName?.toLowerCase() === 'teacher'
+    })) return true
+    return false
+  }, [user])
   const widthClasses = useMemo(() => (isCollapsed ? 'w-24' : 'w-72'), [isCollapsed])
   const labelVisibilityClasses = useMemo(
     () => (isCollapsed ? 'max-w-0 opacity-0' : 'max-w-full opacity-100'),
     [isCollapsed],
   )
+
+  // Build navigation items based on enrollment type
+  const navigation = useMemo(() => {
+    const baseNav = [
+      {
+        label: 'Overview',
+        icon: faHouse,
+        to: '/app',
+      },
+    ]
+
+    // Show Calendar for teachers and enrolled students (second position)
+    if (isTeacher || enrollmentType === 'focusOne' || enrollmentType === 'cohort') {
+      baseNav.push({
+        label: 'My Calendar',
+        icon: faCalendar,
+        to: '/app/calendar',
+      })
+    }
+
+    baseNav.push({
+      label: 'Test Series',
+      icon: faLayerGroup,
+      to: '/app/test-series',
+    })
+
+    // Add enrollment-specific navigation for students
+    if (!isTeacher) {
+      if (enrollmentType === 'focusOne') {
+        baseNav.push({
+          label: 'Focus One',
+          icon: faUserGraduate,
+          to: '/app/focus-one',
+        })
+      } else if (enrollmentType === 'cohort') {
+        baseNav.push({
+          label: 'Cohort',
+          icon: faUsers,
+          to: '/app/cohort',
+        })
+      }
+    } else {
+      // For teachers, show Focus One and Cohort links
+      baseNav.push(
+        {
+          label: 'Focus One',
+          icon: faUserGraduate,
+          to: '/app/teacher/focus-ones',
+        },
+        {
+          label: 'Cohort',
+          icon: faUsers,
+          to: '/app/teacher/cohorts',
+        }
+      )
+    }
+
+    // Only show Live Sessions and Assignments if user is enrolled in Focus One or Cohort
+    if (enrollmentType === 'focusOne' || enrollmentType === 'cohort') {
+      baseNav.push(
+        {
+          label: 'Live Sessions',
+          icon: faVideo,
+          to: '/app/live-sessions',
+        },
+        { 
+          label: 'Assignments',
+          icon: faClock,
+          to: '/app/assignments',
+        }
+      )
+    }
+
+    // Add Resources (available to all)
+    baseNav.push({
+      label: 'Resources',
+      icon: faBookOpen,
+      to: '/app/resources',
+    })
+
+    // Add Session Requests for teachers
+    if (isTeacher) {
+      baseNav.push({
+        label: 'Session Requests',
+        icon: faCalendarCheck,
+        to: '/app/session-requests',
+      })
+    }
+
+    return baseNav
+  }, [enrollmentType, isTeacher])
 
   const handleLogout = () => {
     logout()
@@ -70,11 +154,11 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'relative hidden flex-col border-r border-border bg-gradient-to-b from-background via-background/90 to-muted/30 shadow-lg transition-[width] duration-300 ease-in-out md:flex',
+        'relative hidden flex-col border-r border-border bg-gradient-to-b from-background via-background/90 to-muted/30 shadow-lg transition-[width] duration-300 ease-in-out md:flex overflow-hidden',
         widthClasses,
       )}
     >
-        <div className="mb-6 flex items-center rounded-xl border border-border/60 bg-gradient-to-r from-background/80 via-background/70 to-muted/40 px-3 py-3 shadow-sm backdrop-blur">
+        <div className="flex-shrink-0 mb-6 mx-4 mt-4 flex items-center rounded-xl border border-border/60 bg-gradient-to-r from-background/80 via-background/70 to-muted/40 px-3 py-3 shadow-sm backdrop-blur">
           <img
             src={logoSrc}
             alt="SkyPrep Classroom"
@@ -91,7 +175,7 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
           </div>
         </div>
 
-        <div className="relative flex flex-1 flex-col px-4">
+        <div className="relative flex flex-1 flex-col overflow-y-auto px-4">
           <nav className="flex-1 space-y-1">
             {navigation.map((item) => (
               <NavLink

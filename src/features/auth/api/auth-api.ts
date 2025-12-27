@@ -22,6 +22,14 @@ export interface ResetPasswordRequest {
   newPassword: string
 }
 
+export interface SetupPasswordRequest {
+  setupToken: string
+  newPassword: string
+  name?: string
+  phoneNumber?: string
+  city?: string
+}
+
 export interface SignupRequest {
   name: string
   email: string
@@ -166,6 +174,101 @@ export async function resetPassword(
         showLoadingOverlay: true,
       },
     )
+    return data
+  } catch (error) {
+    throw toApiClientError(error)
+  }
+}
+
+export async function setupPassword(
+  request: SetupPasswordRequest,
+): Promise<AuthSuccessResponse> {
+  try {
+    const { data } = await apiClient.post<AuthSuccessResponse>(
+      '/auth/setup-password',
+      request,
+      {
+        showLoadingOverlay: true,
+      },
+    )
+    return data
+  } catch (error) {
+    throw toApiClientError(error)
+  }
+}
+
+export interface EnrollmentDetails {
+  type: 'focusOne' | 'cohort'
+  enrollment: {
+    id: string
+    name?: string
+    slug?: string
+    description?: string
+    status?: string
+    isActive?: boolean
+    isCancelled?: boolean
+    pausedAt?: string
+    resumedAt?: string
+    startDate?: string
+    endDate?: string
+    subjects?: Array<{
+      id: string
+      name: string
+      description?: string
+      isActive?: boolean
+    }>
+    teachers?: Array<{
+      id: string
+      name: string
+      email: string
+    }>
+    teacherSubjectMappings?: Array<{
+      teacher: {
+        id: string
+        name: string
+        email: string
+      }
+      subject: {
+        id: string
+        name: string
+        description?: string
+      }
+    }>
+    student?: {
+      id: string
+      name: string
+      email: string
+    } | null
+    enrolledAt?: string
+    startedAt?: string
+  }
+  teacherSubjectMappings?: Array<{
+    teacher: {
+      id: string
+      name: string
+      email: string
+    }
+    subject: {
+      id: string
+      name: string
+      description?: string
+    }
+  }>
+  status: string
+  enrolledAt: string
+  startedAt?: string
+  joinedViaWaitlist?: boolean
+}
+
+export interface EnrollmentResponse {
+  success: boolean
+  message: string
+  data: EnrollmentDetails | null
+}
+
+export async function getMyEnrollment(): Promise<EnrollmentResponse> {
+  try {
+    const { data } = await apiClient.get<EnrollmentResponse>('/auth/me/enrollment')
     return data
   } catch (error) {
     throw toApiClientError(error)
