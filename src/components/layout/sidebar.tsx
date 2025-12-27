@@ -252,28 +252,6 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
             ))}
           </nav>
 
-          <div className="mt-6 rounded-xl border border-border/60 bg-card/60 p-4 shadow-sm backdrop-blur transition-opacity duration-200">
-            {!isCollapsed ? (
-              <div className="space-y-3 transition-all duration-300 ease-out">
-                <p className="text-sm font-semibold text-foreground">Need help?</p>
-                <p className="text-xs text-muted-foreground">
-                  Join onboarding sessions or review the quick start guide to get up to speed.
-                </p>
-                <Button variant="outline" className="w-full text-xs">
-                  Open guide
-                </Button>
-              </div>
-            ) : (
-              <div className="flex h-full items-center justify-center transition-all duration-300 ease-out">
-                <FontAwesomeIcon
-                  icon={faBookOpen}
-                  className="h-4 w-4 text-muted-foreground"
-                  title="Open guide"
-                />
-              </div>
-            )}
-          </div>
-
           <div className="mt-6 pb-6">
             <Button
               variant="ghost"
