@@ -13,14 +13,17 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { NavLink } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 
 import { useTheme } from '@/components/theme-provider'
 import { cn } from '@/lib/utils'
 import lightLogo from '@/assets/logo.png'
 import darkLogo from '@/assets/skyprep-logo-dark.png'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { useAuthStore } from '@/stores/auth-store'
 import { notifySuccess } from '@/lib/notifications'
+import { getTeacherSessionRequests } from '@/features/sessions/api/session-api'
 
 export const SIDEBAR_STORAGE_KEY = 'skyprep-sidebar-collapsed'
 
@@ -54,6 +57,21 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
     () => (isCollapsed ? 'max-w-0 opacity-0' : 'max-w-full opacity-100'),
     [isCollapsed],
   )
+
+  // Fetch pending session requests count for teachers
+  const { data: pendingRequestsData } = useQuery({
+    queryKey: ['teacherPendingRequestsCount'],
+    queryFn: () => getTeacherSessionRequests({
+      page: 1,
+      limit: 1, // We only need to know if there are any, but API requires limit
+      status: 'requested',
+    }),
+    enabled: isTeacher,
+    refetchInterval: 30000, // Refetch every 30 seconds to keep count updated
+  })
+
+  const pendingRequestsCount = pendingRequestsData?.data?.pagination?.totalItems || 0
+  const hasPendingRequests = pendingRequestsCount > 0
 
   // Build navigation items based on enrollment type
   const navigation = useMemo(() => {
@@ -140,11 +158,12 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
         label: 'Session Requests',
         icon: faCalendarCheck,
         to: '/app/session-requests',
+        badge: hasPendingRequests ? pendingRequestsCount : undefined,
       })
     }
 
     return baseNav
-  }, [enrollmentType, isTeacher])
+  }, [enrollmentType, isTeacher, hasPendingRequests, pendingRequestsCount])
 
   const handleLogout = () => {
     logout()
@@ -193,12 +212,17 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
                 }
                 title={isCollapsed ? item.label : undefined}
               >
-                <FontAwesomeIcon
-                  icon={item.icon}
-                  className={cn(
-                    'h-4 w-4 transition-transform duration-150 ease-out group-hover:scale-110 group-hover:text-foreground',
+                <div className="relative">
+                  <FontAwesomeIcon
+                    icon={item.icon}
+                    className={cn(
+                      'h-4 w-4 transition-transform duration-150 ease-out group-hover:scale-110 group-hover:text-foreground',
+                    )}
+                  />
+                  {item.badge && isCollapsed && (
+                    <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-destructive border-2 border-background" />
                   )}
-                />
+                </div>
                 <span
                   className={cn(
                     'whitespace-nowrap transition-all duration-300 ease-out',
@@ -207,9 +231,21 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
                 >
                   {item.label}
                 </span>
+                {item.badge && !isCollapsed && (
+                  <Badge 
+                    variant="destructive" 
+                    className={cn(
+                      'ml-auto h-5 min-w-5 px-1.5 text-xs flex items-center justify-center transition-all duration-300 ease-out',
+                      labelVisibilityClasses,
+                    )}
+                  >
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </Badge>
+                )}
                 {isCollapsed ? (
                   <span className="pointer-events-none absolute left-full top-1/2 ml-3 -translate-y-1/2 rounded-md border border-border/60 bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 shadow-md transition-all duration-150 group-hover:translate-x-2 group-hover:opacity-100">
                     {item.label}
+                    {item.badge && ` (${item.badge})`}
                   </span>
                 ) : null}
               </NavLink>
