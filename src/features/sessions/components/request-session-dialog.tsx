@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label'
 import { requestSession, type RequestSessionRequest, getAvailableSlots, type AvailableSlot } from '../api/session-api'
 import { notifySuccess, notifyError, handleApiError } from '@/lib/notifications'
 import { LottieLoader } from '@/components/ui/lottie-loader'
+import { toApiClientError } from '@/lib/http/api-error'
 
 interface RequestSessionDialogProps {
   open: boolean
@@ -141,6 +142,18 @@ export function RequestSessionDialog({
   // Calculate minimum date based on program start date
   const minDate = useMemo(() => getMinDate(programStartDate), [programStartDate])
   const minDateObj = useMemo(() => new Date(minDate + 'T00:00:00'), [minDate])
+  
+  // Calculate maximum date (1.5 weeks / 10.5 days in advance)
+  const maxDateObj = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const maxDateValue = new Date(today)
+    maxDateValue.setDate(today.getDate() + 11) // 11 days ahead to allow 10.5 days of booking window
+    maxDateValue.setHours(0, 0, 0, 0)
+    return maxDateValue
+  }, [])
+  
+  const maxDate = useMemo(() => maxDateObj.toISOString().split('T')[0], [maxDateObj]) // Format as YYYY-MM-DD for input element
   
   // Initialize selectedDate when dialog opens (default to minimum date)
   useEffect(() => {
@@ -286,6 +299,12 @@ export function RequestSessionDialog({
         return
       }
       
+      // Check if date is more than 1.5 weeks (10.5 days) in advance
+      if (selected >= maxDateObj) {
+        setErrors((prev) => ({ ...prev, date: 'Sessions can only be scheduled up to 1.5 weeks (10.5 days) in advance' }))
+        return
+      }
+      
       // Clear date error if valid
       if (errors.date) {
         setErrors((prev) => {
@@ -295,7 +314,7 @@ export function RequestSessionDialog({
         })
       }
     }
-  }, [errors.date, minDateObj])
+  }, [errors.date, minDateObj, maxDateObj])
 
   const handleCancel = useCallback(() => {
     onOpenChange(false)
@@ -378,7 +397,7 @@ export function RequestSessionDialog({
           <DialogTitle className="text-xl font-bold">Schedule a Session</DialogTitle>
           <DialogDescription>
             Book a personalized one-on-one session with your teacher.
-            Select a date (at least one day after your program start date), choose a time between 9 AM and 9 PM. Sessions are not available on Sundays.
+            Select a date (1 day to 1.5 weeks in advance), choose a time between 9 AM and 9 PM. Sessions are not available on Sundays. Saturday sessions are only available from 9 AM to 4 PM.
           </DialogDescription>
         </DialogHeader>
 
@@ -428,6 +447,7 @@ export function RequestSessionDialog({
               value={selectedDate}
               onChange={handleDateChange}
               min={minDate}
+              max={maxDate}
               disabled={requestMutation.isPending}
               className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.date ? 'border-red-500' : ''}`}
             />
@@ -439,7 +459,7 @@ export function RequestSessionDialog({
             )}
             {!selectedDate && (
               <p className="text-xs text-muted-foreground">
-                Sessions can be scheduled for any date at least one day after your program start date (Sundays excluded)
+                Sessions can be scheduled for any date between 1 day and 1.5 weeks in advance (Sundays excluded)
               </p>
             )}
           </div>
@@ -462,7 +482,14 @@ export function RequestSessionDialog({
               {slotsError && (
                 <div className="rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800 p-3">
                   <p className="text-sm text-red-600 dark:text-red-400">
-                    Failed to load available slots. Please try again.
+                    {(() => {
+                      try {
+                        const apiError = toApiClientError(slotsError)
+                        return apiError.message || 'Failed to load available slots. Please try again.'
+                      } catch {
+                        return 'Failed to load available slots. Please try again.'
+                      }
+                    })()}
                   </p>
                 </div>
               )}
