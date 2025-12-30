@@ -10,6 +10,7 @@ import {
   faVideo,
   faUserGraduate,
   faUsers,
+  faXmark,
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { NavLink } from 'react-router-dom'
@@ -29,9 +30,11 @@ export const SIDEBAR_STORAGE_KEY = 'skyprep-sidebar-collapsed'
 
 interface SidebarProps {
   isCollapsed: boolean
+  isMobileOpen?: boolean
+  onMobileClose?: () => void
 }
 
-export function Sidebar({ isCollapsed }: SidebarProps) {
+export function Sidebar({ isCollapsed, isMobileOpen = false, onMobileClose }: SidebarProps) {
   const { theme } = useTheme()
   const logoSrc = theme === 'dark' ? darkLogo : lightLogo
   const logout = useAuthStore((state) => state.logout)
@@ -52,9 +55,12 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
     })) return true
     return false
   }, [user])
-  const widthClasses = useMemo(() => (isCollapsed ? 'w-24' : 'w-72'), [isCollapsed])
+  const widthClasses = useMemo(() => {
+    // On mobile, always show full width. On desktop, respect collapsed state
+    return isCollapsed ? 'w-72 md:w-24' : 'w-72'
+  }, [isCollapsed])
   const labelVisibilityClasses = useMemo(
-    () => (isCollapsed ? 'max-w-0 opacity-0' : 'max-w-full opacity-100'),
+    () => (isCollapsed ? 'max-w-full opacity-100 md:max-w-0 md:opacity-0' : 'max-w-full opacity-100'),
     [isCollapsed],
   )
 
@@ -171,27 +177,58 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
   }
 
   return (
-    <aside
-      className={cn(
-        'relative hidden flex-col border-r border-border bg-gradient-to-b from-background via-background/90 to-muted/30 shadow-lg transition-[width] duration-300 ease-in-out md:flex overflow-hidden',
-        widthClasses,
+    <>
+      {/* Mobile overlay backdrop */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+          onClick={onMobileClose}
+          aria-hidden="true"
+        />
       )}
-    >
-        <div className="flex-shrink-0 mb-6 mx-4 mt-4 flex items-center rounded-xl border border-border/60 bg-gradient-to-r from-background/80 via-background/70 to-muted/40 px-3 py-3 shadow-sm backdrop-blur">
-          <img
-            src={logoSrc}
-            alt="SkyPrep Classroom"
-            className="h-10 w-10 rounded-lg border border-border bg-card object-cover shadow-md transition-transform duration-300 ease-out"
-          />
-          <div
-            className={cn(
-              'ml-3 overflow-hidden transition-all duration-300 ease-out',
-              labelVisibilityClasses,
-            )}
-          >
-            <div className="text-lg font-semibold text-primary">SkyPrep Classroom</div>
-            <p className="text-xs text-muted-foreground">Shaping aviators with precision</p>
+      
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          'relative flex flex-col border-r border-border bg-gradient-to-b from-background via-background/90 to-muted/30 shadow-lg transition-all duration-300 ease-in-out overflow-hidden',
+          // Mobile: fixed drawer that slides in from left
+          'fixed inset-y-0 left-0 z-50 transform md:relative md:transform-none',
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+          // Desktop: always visible, mobile: only when open
+          'md:flex',
+          widthClasses,
+        )}
+      >
+        <div className="flex-shrink-0 mb-6 mx-4 mt-4 flex items-center justify-between rounded-xl border border-border/60 bg-gradient-to-r from-background/80 via-background/70 to-muted/40 px-3 py-3 shadow-sm backdrop-blur">
+          <div className="flex items-center flex-1">
+            <img
+              src={logoSrc}
+              alt="SkyPrep Classroom"
+              className="h-10 w-10 rounded-lg border border-border bg-card object-cover shadow-md transition-transform duration-300 ease-out"
+            />
+            <div
+              className={cn(
+                'ml-3 overflow-hidden transition-all duration-300 ease-out',
+                labelVisibilityClasses,
+              )}
+            >
+              <div className="text-lg font-semibold text-primary">SkyPrep Classroom</div>
+              <p className="text-xs text-muted-foreground">Shaping aviators with precision</p>
+            </div>
           </div>
+          {/* Mobile close button */}
+          {onMobileClose && (
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="md:hidden h-8 w-8 rounded-full border border-border/70 bg-background/80 text-muted-foreground transition-all hover:border-primary/40 hover:text-primary"
+              aria-label="Close menu"
+              onClick={onMobileClose}
+            >
+              <FontAwesomeIcon icon={faXmark} className="h-4 w-4" />
+            </Button>
+          )}
         </div>
 
         <div className="relative flex flex-1 flex-col overflow-y-auto px-4">
@@ -204,13 +241,19 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
                 className={({ isActive }) =>
                   cn(
                     'group relative flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
-                    isCollapsed ? 'justify-center' : 'gap-3',
+                    isCollapsed ? 'gap-3 md:justify-center' : 'gap-3',
                     isActive
                       ? 'bg-primary/90 text-primary-foreground shadow-lg shadow-primary/30'
                       : 'text-muted-foreground hover:bg-accent/70 hover:text-accent-foreground hover:shadow-sm',
                   )
                 }
                 title={isCollapsed ? item.label : undefined}
+                onClick={() => {
+                  // Close mobile sidebar when navigation item is clicked
+                  if (onMobileClose && window.innerWidth < 768) {
+                    onMobileClose()
+                  }
+                }}
               >
                 <div className="relative">
                   <FontAwesomeIcon
@@ -257,7 +300,7 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
               variant="ghost"
               className={cn(
                 'w-full justify-center gap-2 rounded-lg border border-border/70 bg-background/80 text-sm font-medium text-muted-foreground transition-all hover:border-destructive/40 hover:text-destructive',
-                isCollapsed ? 'px-0' : 'px-3',
+                isCollapsed ? 'px-3 md:px-0' : 'px-3',
               )}
               onClick={handleLogout}
             >
@@ -275,7 +318,8 @@ export function Sidebar({ isCollapsed }: SidebarProps) {
         </div>
 
         <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-border to-transparent" />
-    </aside>
+      </aside>
+    </>
   )
 }
 

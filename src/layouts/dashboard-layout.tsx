@@ -14,6 +14,7 @@ export function DashboardLayout() {
     if (typeof window === 'undefined') return false
     return window.localStorage.getItem(SIDEBAR_STORAGE_KEY) === 'true'
   })
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
 
   useEffect(() => {
     setIsTransitioning(true)
@@ -31,6 +32,21 @@ export function DashboardLayout() {
     window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(isSidebarCollapsed))
   }, [isSidebarCollapsed])
 
+  // Close mobile sidebar when route changes
+  useEffect(() => {
+    setIsMobileSidebarOpen(false)
+  }, [location.pathname])
+
+  const handleToggleSidebar = () => {
+    // On mobile, toggle the mobile sidebar visibility
+    // On desktop, toggle the collapsed state
+    if (window.innerWidth < 768) {
+      setIsMobileSidebarOpen((prev) => !prev)
+    } else {
+      setIsSidebarCollapsed((prev) => !prev)
+    }
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <LottieLoader
@@ -40,11 +56,15 @@ export function DashboardLayout() {
         message="Loading your classroom..."
         className="text-primary"
       />
-      <Sidebar isCollapsed={isSidebarCollapsed} />
+      <Sidebar 
+        isCollapsed={isSidebarCollapsed} 
+        isMobileOpen={isMobileSidebarOpen}
+        onMobileClose={() => setIsMobileSidebarOpen(false)}
+      />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar
           onLogout={logout}
-          onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
+          onToggleSidebar={handleToggleSidebar}
           isSidebarCollapsed={isSidebarCollapsed}
         />
         <main className="flex-1 overflow-y-auto bg-muted/20 p-4 md:p-6">
